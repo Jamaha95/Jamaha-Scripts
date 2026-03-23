@@ -58,14 +58,13 @@ UtilityModule:Discord("7wZ7vEgWXR")
 
 local Library = UtilityModule.Library() --loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
 
+Library:SetTheme({
+    Background = Color3.fromRGB(20, 20, 25),
+    Accent = Color3.fromRGB(255, 170, 0),
+    Text = Color3.fromRGB(255,255,255)
+})
+
 local Window = Library:Window(
-pcall(function()
-    Library:SetTheme({
-        Background = Color3.fromRGB(15, 15, 20),
-        Accent = Color3.fromRGB(0, 120, 255),
-        Text = Color3.fromRGB(255, 255, 255) -- THIS is the important one
-    })
-end)
     UtilityModule.HubName,
     "Anime Card Collection",
     UtilityModule.Loader
