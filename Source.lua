@@ -59,41 +59,17 @@ UtilityModule:Discord("7wZ7vEgWXR")
 local Library = UtilityModule.Library() --loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
 
 local Window = Library:Window(
+pcall(function()
+    Library:SetTheme({
+        Background = Color3.fromRGB(15, 15, 20),
+        Accent = Color3.fromRGB(0, 120, 255),
+        Text = Color3.fromRGB(255, 255, 255) -- THIS is the important one
+    })
+end)
     UtilityModule.HubName,
     "Anime Card Collection",
     UtilityModule.Loader
 )
-
--- THEME (black + blue)
-pcall(function()
-    Library:SetTheme({
-        Background = Color3.fromRGB(10, 10, 15),
-        Accent = Color3.fromRGB(0, 120, 255),
-        Text = Color3.fromRGB(255, 255, 255)
-    })
-end)
-
--- WAIT FOR UI TO FULLY LOAD
-task.wait(1)
-
--- FORCE TEXT + VISIBILITY
-pcall(function()
-    for _,v in pairs(game.CoreGui:GetDescendants()) do
-        if v:IsA("TextLabel") or v:IsA("TextButton") then
-            v.TextColor3 = Color3.fromRGB(255, 255, 255)
-        end
-        if v:IsA("Frame") then
-            v.BackgroundTransparency = math.clamp(v.BackgroundTransparency, 0, 0.2)
-        end
-    end
-end)
-
--- FIX POSITION (center screen)
-task.wait(0.2)
-pcall(function()
-    Window.Frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    Window.Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-end)
 
 local AutoFarm = Window:Tab("Autofarm")
 local GradingTab = Window:Tab("Grading")
