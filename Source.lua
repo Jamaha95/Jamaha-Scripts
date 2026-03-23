@@ -65,13 +65,16 @@ local Window = Library:Window(
 )
 
 local AutoFarm = Window:Tab("Autofarm")
-AutoFarm:Label("IF YOU SEE THIS, UI WORKS")
-AutoFarm:Toggle("Test Toggle", false, function(v)
-    print(v)
-end)
+AutoFarm:Label(" ")
+
 local GradingTab = Window:Tab("Grading")
+GradingTab:Label(" ")
+
 local UpgradeTab = Window:Tab("Upgrades")
+UpgradeTab:Label(" ")
+
 local TowerTab = Window:Tab("Tower")
+TowerTab:Label(" ")
 
 local TweenService = game:GetService("TweenService")
 local CardRemote = game:GetService("ReplicatedStorage").Remotes.Card
