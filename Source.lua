@@ -58,12 +58,6 @@ UtilityModule:Discord("7wZ7vEgWXR")
 
 local Library = UtilityModule.Library() --loadstring(game:HttpGetAsync("https://rawscripts.net/raw/Universal-Script-woof-gui-16777"))()
 
-Library:SetTheme({
-    Background = Color3.fromRGB(20, 20, 25),
-    Accent = Color3.fromRGB(255, 170, 0),
-    Text = Color3.fromRGB(255,255,255)
-})
-
 local Window = Library:Window(
     UtilityModule.HubName,
     "Anime Card Collection",
@@ -71,6 +65,10 @@ local Window = Library:Window(
 )
 
 local AutoFarm = Window:Tab("Autofarm")
+AutoFarm:Label("IF YOU SEE THIS, UI WORKS")
+AutoFarm:Toggle("Test Toggle", false, function(v)
+    print(v)
+end)
 local GradingTab = Window:Tab("Grading")
 local UpgradeTab = Window:Tab("Upgrades")
 local TowerTab = Window:Tab("Tower")
