@@ -8,15 +8,15 @@ local LocalPlayer = Players.LocalPlayer
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Anime Card Collection | Xeno Full",
+   Name = "Anime Card Collection | Exact Port",
    LoadingTitle = "Loading...",
-   LoadingSubtitle = "Full Rebuild",
+   LoadingSubtitle = "Full Script",
    ConfigurationSaving = {Enabled = false}
 })
 
-local AutoFarmTab = Window:CreateTab("Autofarm", 4483362458)
+local AutoFarm = Window:CreateTab("Autofarm", 4483362458)
 local TowerTab = Window:CreateTab("Tower", 4483362458)
-local GradeTab = Window:CreateTab("Grading", 4483362458)
+local GradingTab = Window:CreateTab("Grading", 4483362458)
 local UpgradeTab = Window:CreateTab("Upgrades", 4483362458)
 
 --// MODULES
@@ -24,83 +24,77 @@ local CardRemote = ReplicatedStorage.Remotes.Card
 local TowerRemote = ReplicatedStorage.Remotes.Tower
 local GradeRemote = ReplicatedStorage.Remotes.Grade
 
-local CardConfig = require(ReplicatedStorage.Modules.Config.Core.CardConfig)
+local CardConfigModule = require(ReplicatedStorage.Modules.Config.Core.CardConfig)
 local TowerConfig = require(ReplicatedStorage.Modules.Config.Core.TowerConfig)
-local UpgradeModule = require(ReplicatedStorage.Modules.Config.Core.Upgrades)
 local GradeHandler = require(ReplicatedStorage.Client.UI.GradeHandler)
 local TowerHandler = require(ReplicatedStorage.Client.UI.TowerHandler)
 local CardOpening = require(ReplicatedStorage.Client.UI.CardHandler.CardOpening)
+local UpgradeModule = require(ReplicatedStorage.Modules.Config.Core.Upgrades)
 
 --// HELPERS
-local function DataModule()
+function DataModule()
     return debug.getupvalues(GradeHandler.Init)[1]
 end
 
-local function GetPlot()
+function GetPlot()
     return tostring(LocalPlayer:GetAttribute("Plot"))
 end
 
 --// GLOBALS
-getgenv().Settings = {
-    AutoCollect = false,
-    AutoTokens = false,
-    AutoBuy = false,
-    AutoOpen = false,
-    AutoBattle = false,
-    AutoTrait = false,
-    AutoGrade = false,
-    AutoUpgrade = false,
-    RemoveAnim = false,
-    TP = false,
+getgenv().AutoCollect = false
+getgenv().AutoCollect_Tokens = false
+getgenv().AutoCollect_Potions = false
+getgenv().AutoBuy = false
+getgenv().AutoOpen = false
+getgenv().AutoBattle = false
+getgenv().AutoTrait = false
+getgenv().AutoGrade = false
+getgenv().AutoUpgrade = false
+getgenv().PacksTp = false
+getgenv().RemoveOpeningAnimation = false
 
-    SelectedPacks = {},
-    SelectedRarity = {"All"},
-    SelectedTraits = {},
-    SelectedCards = {},
-    SelectedGrades = {},
-    SelectedUpgrades = {}
-}
+getgenv().Selected_Pack = {}
+getgenv().Selected_Rarities = {"All"}
+getgenv().TraitCard = {}
+getgenv().Selected_Traits = {}
+getgenv().Selected_Card = {}
+getgenv().Selected_Grade = {}
+getgenv().Selected_Upgrades = {}
 
---// UI DATA
+--// DATA
 
--- Packs
 local Packs = {}
 for _,v in pairs(ReplicatedStorage.Assets.Packs:GetChildren()) do
     table.insert(Packs, v.Name)
 end
 
--- Rarities
 local Rarities = {"All","Normal"}
 for i,_ in pairs(require(ReplicatedStorage.Modules.Config.Core.PackExchange)) do
     table.insert(Rarities, i)
 end
 
--- Traits
 local Traits = {}
 for i,_ in pairs(TowerConfig.Traits) do
     table.insert(Traits, i)
 end
 
--- Cards
-local function GetCards()
+local function Cards()
     local list = {"All"}
-    for _,pack in pairs(CardConfig.Packs) do
+    for _,pack in pairs(CardConfigModule.Packs) do
         for name,_ in pairs(pack.List) do
-            if not table.find(list, name) then
-                table.insert(list, name)
+            if not table.find(list,name) then
+                table.insert(list,name)
             end
         end
     end
     return list
 end
 
--- Grades
-local Grades = {}
+local Gradings = {}
 for _,v in pairs(require(ReplicatedStorage.Modules.Config.Core.Grades).List) do
-    table.insert(Grades, v)
+    table.insert(Gradings, v)
 end
 
--- Upgrades
 local Upgrades = {}
 for i,_ in pairs(UpgradeModule) do
     table.insert(Upgrades, i)
@@ -108,114 +102,69 @@ end
 
 --// UI
 
--- Autofarm
-AutoFarmTab:CreateToggle({Name="Auto Collect",Callback=function(v) getgenv().Settings.AutoCollect=v end})
-AutoFarmTab:CreateToggle({Name="Auto Tokens",Callback=function(v) getgenv().Settings.AutoTokens=v end})
-AutoFarmTab:CreateToggle({Name="Auto Buy Packs",Callback=function(v) getgenv().Settings.AutoBuy=v end})
-AutoFarmTab:CreateToggle({Name="Auto Open Packs",Callback=function(v) getgenv().Settings.AutoOpen=v end})
-AutoFarmTab:CreateToggle({Name="Remove Animation",Callback=function(v)
-    getgenv().Settings.RemoveAnim=v
+AutoFarm:CreateToggle({Name="Auto Collect",Callback=function(v) getgenv().AutoCollect=v end})
+AutoFarm:CreateToggle({Name="Auto Tokens",Callback=function(v) getgenv().AutoCollect_Tokens=v end})
+AutoFarm:CreateToggle({Name="Auto Potions",Callback=function(v) getgenv().AutoCollect_Potions=v end})
+AutoFarm:CreateToggle({Name="Auto Buy Packs",Callback=function(v) getgenv().AutoBuy=v end})
+AutoFarm:CreateToggle({Name="Auto Open Packs",Callback=function(v) getgenv().AutoOpen=v end})
+AutoFarm:CreateToggle({Name="Allow TP",Callback=function(v) getgenv().PacksTp=v end})
+
+AutoFarm:CreateDropdown({Name="Packs",Options=Packs,MultiSelection=true,Callback=function(v) getgenv().Selected_Pack=v end})
+AutoFarm:CreateDropdown({Name="Rarity",Options=Rarities,MultiSelection=true,Callback=function(v) getgenv().Selected_Rarities=v end})
+
+TowerTab:CreateToggle({Name="Auto Battle",Callback=function(v)
+    getgenv().AutoBattle=v
     if v then
-        CardOpening.OpenCard=function()end
+        TowerHandler.Attack=function() TowerRemote:FireServer("AttackDone") end
+    else
+        TowerHandler.Attack=getgenv().FastTower
     end
 end})
 
-AutoFarmTab:CreateDropdown({
-    Name="Packs",
-    Options=Packs,
-    MultiSelection=true,
-    Callback=function(v) getgenv().Settings.SelectedPacks=v end
-})
+TowerTab:CreateToggle({Name="Auto Trait",Callback=function(v) getgenv().AutoTrait=v end})
+TowerTab:CreateDropdown({Name="Cards",Options=Cards(),MultiSelection=true,Callback=function(v) getgenv().TraitCard=v end})
+TowerTab:CreateDropdown({Name="Traits",Options=Traits,MultiSelection=true,Callback=function(v) getgenv().Selected_Traits=v end})
 
-AutoFarmTab:CreateDropdown({
-    Name="Rarity",
-    Options=Rarities,
-    MultiSelection=true,
-    Callback=function(v) getgenv().Settings.SelectedRarity=v end
-})
+GradingTab:CreateToggle({Name="Auto Grade",Callback=function(v) getgenv().AutoGrade=v end})
+GradingTab:CreateDropdown({Name="Cards",Options=Cards(),MultiSelection=true,Callback=function(v) getgenv().Selected_Card=v end})
+GradingTab:CreateDropdown({Name="Grades",Options=Gradings,MultiSelection=true,Callback=function(v) getgenv().Selected_Grade=v end})
 
--- Tower
-if not getgenv().OldTower then
-    getgenv().OldTower = TowerHandler.Attack
-end
+UpgradeTab:CreateToggle({Name="Auto Upgrade",Callback=function(v) getgenv().AutoUpgrade=v end})
+UpgradeTab:CreateDropdown({Name="Upgrades",Options=Upgrades,MultiSelection=true,Callback=function(v) getgenv().Selected_Upgrades=v end})
 
-TowerTab:CreateToggle({
-    Name="Auto Battle",
-    Callback=function(v)
-        getgenv().Settings.AutoBattle=v
-        if v then
-            TowerHandler.Attack=function()
-                TowerRemote:FireServer("AttackDone")
-            end
-        else
-            TowerHandler.Attack=getgenv().OldTower
-        end
-    end
-})
+--// LOGIC (EXACT PORT STYLE)
 
-TowerTab:CreateToggle({Name="Auto Trait",Callback=function(v) getgenv().Settings.AutoTrait=v end})
-
-TowerTab:CreateDropdown({
-    Name="Select Traits",
-    Options=Traits,
-    MultiSelection=true,
-    Callback=function(v) getgenv().Settings.SelectedTraits=v end
-})
-
-TowerTab:CreateDropdown({
-    Name="Select Cards",
-    Options=GetCards(),
-    MultiSelection=true,
-    Callback=function(v) getgenv().Settings.SelectedCards=v end
-})
-
--- Grading
-GradeTab:CreateToggle({Name="Auto Grade",Callback=function(v) getgenv().Settings.AutoGrade=v end})
-
-GradeTab:CreateDropdown({
-    Name="Cards",
-    Options=GetCards(),
-    MultiSelection=true,
-    Callback=function(v) getgenv().Settings.SelectedCards=v end
-})
-
-GradeTab:CreateDropdown({
-    Name="Grades",
-    Options=Grades,
-    MultiSelection=true,
-    Callback=function(v) getgenv().Settings.SelectedGrades=v end
-})
-
--- Upgrades
-UpgradeTab:CreateToggle({Name="Auto Upgrade",Callback=function(v) getgenv().Settings.AutoUpgrade=v end})
-
-UpgradeTab:CreateDropdown({
-    Name="Upgrades",
-    Options=Upgrades,
-    MultiSelection=true,
-    Callback=function(v) getgenv().Settings.SelectedUpgrades=v end
-})
-
---// LOOPS
-
+-- Collect
 task.spawn(function()
     while task.wait() do
-        if getgenv().Settings.AutoCollect then
-            pcall(function()
-                local plot=GetPlot()
+        if getgenv().AutoCollect then
+            for _,v in pairs(workspace.Plots:GetChildren()) do
                 for _,side in pairs({"Left","Right"}) do
-                    for _,v in pairs(workspace.Plots[plot].Map.Display[side]:GetChildren()) do
-                        CardRemote:FireServer("Collect", v)
+                    for _,card in pairs(v.Map.Display[side]:GetChildren()) do
+                        CardRemote:FireServer("Collect", card)
                     end
                 end
-            end)
+            end
         end
     end
 end)
 
+-- Page Flip
+task.spawn(function()
+    local Page,Flip=1,false
+    while task.wait() do
+        if getgenv().AutoCollect then
+            if Page>=12 then Page=0 Flip=not Flip end
+            CardRemote:FireServer("Page",Flip and "LeftArrow" or "RightArrow")
+            Page+=1
+        end
+    end
+end)
+
+-- Tokens
 task.spawn(function()
     while task.wait() do
-        if getgenv().Settings.AutoTokens then
+        if getgenv().AutoCollect_Tokens then
             for _,v in pairs(workspace.Items.Tokens.Server:GetChildren()) do
                 v.CFrame=LocalPlayer.Character.HumanoidRootPart.CFrame
             end
@@ -223,32 +172,59 @@ task.spawn(function()
     end
 end)
 
+-- Potions
 task.spawn(function()
     while task.wait() do
-        if getgenv().Settings.AutoBuy then
-            for _,v in pairs(workspace.Client.Packs:GetChildren()) do
-                CardRemote:FireServer("BuyPack", v.Name)
+        if getgenv().AutoCollect_Potions then
+            for _,v in pairs(workspace.Items.Misc.Collectables:GetChildren()) do
+                v.CFrame=LocalPlayer.Character.HumanoidRootPart.CFrame
             end
         end
     end
 end)
 
+-- Buy Packs (SMART)
 task.spawn(function()
     while task.wait() do
-        if getgenv().Settings.AutoOpen then
-            for _,v in pairs(workspace.Plots[GetPlot()].Packs:GetChildren()) do
-                if v:FindFirstChildOfClass("ProximityPrompt") then
-                    v.ProximityPrompt:InputHoldBegin()
-                    v.ProximityPrompt:InputHoldEnd()
+        if getgenv().AutoBuy then
+            for _,v in pairs(workspace.Client.Packs:GetChildren()) do
+                if table.find(getgenv().Selected_Pack,v.Name) then
+                    CardRemote:FireServer("BuyPack",v.Name)
                 end
             end
         end
     end
 end)
 
+-- Open Packs (TP INCLUDED)
 task.spawn(function()
-    while task.wait(0.5) do
-        if getgenv().Settings.AutoBattle then
+    while task.wait() do
+        if getgenv().AutoOpen then
+            for _,v in pairs(workspace.Plots[GetPlot()].Packs:GetChildren()) do
+                for _,p in pairs(v:GetChildren()) do
+                    if p:FindFirstChildOfClass("ProximityPrompt") then
+                        if getgenv().PacksTp then
+                            local old=LocalPlayer.Character.HumanoidRootPart.CFrame
+                            LocalPlayer.Character.HumanoidRootPart.CFrame=p.CFrame
+                            task.wait(.1)
+                            p.ProximityPrompt:InputHoldBegin()
+                            p.ProximityPrompt:InputHoldEnd()
+                            LocalPlayer.Character.HumanoidRootPart.CFrame=old
+                        else
+                            p.ProximityPrompt:InputHoldBegin()
+                            p.ProximityPrompt:InputHoldEnd()
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- Battle Loop
+task.spawn(function()
+    while task.wait(.5) do
+        if getgenv().AutoBattle then
             if not LocalPlayer.PlayerGui.Tower.Frame.Visible then
                 TowerRemote:FireServer("EquipBest")
                 TowerRemote:FireServer("StartTower")
@@ -258,36 +234,39 @@ task.spawn(function()
     end
 end)
 
+-- Trait Roll
 task.spawn(function()
-    while task.wait() do
-        if getgenv().Settings.AutoTrait then
-            for _,card in pairs(getgenv().Settings.SelectedCards) do
-                local data=DataModule().ReplicatedData.GetData("Cards",card)
-                if data and not table.find(getgenv().Settings.SelectedTraits,data.Trait) then
-                    TowerRemote:FireServer("Roll",card)
+    while task.wait(.1) do
+        if getgenv().AutoTrait then
+            for _,v in pairs(getgenv().TraitCard) do
+                local data=DataModule().ReplicatedData.GetData("Cards",v)
+                if data and not table.find(getgenv().Selected_Traits,data.Trait) then
+                    TowerRemote:FireServer("Roll",v)
                 end
             end
         end
     end
 end)
 
+-- Grade
 task.spawn(function()
     while task.wait() do
-        if getgenv().Settings.AutoGrade then
-            for id,data in pairs(DataModule().ReplicatedData.GetData("Cards")) do
-                if data.Grade<10 then
-                    GradeRemote:FireServer("Roll",id)
+        if getgenv().AutoGrade then
+            for i,v in pairs(DataModule().ReplicatedData.GetData("Cards")) do
+                if not table.find(getgenv().Selected_Grade,v.Grade) then
+                    GradeRemote:FireServer("Roll",i)
                 end
             end
         end
     end
 end)
 
+-- Upgrade
 task.spawn(function()
     while task.wait() do
-        if getgenv().Settings.AutoUpgrade then
-            for _,name in pairs(getgenv().Settings.SelectedUpgrades) do
-                CardRemote:FireServer("Upgrade",name)
+        if getgenv().AutoUpgrade then
+            for _,v in pairs(getgenv().Selected_Upgrades) do
+                CardRemote:FireServer("Upgrade",v)
             end
         end
     end
@@ -295,6 +274,6 @@ end)
 
 Rayfield:Notify({
    Title="Loaded",
-   Content="Full Xeno Script Ready",
+   Content="Exact Port Running (Xeno Safe)",
    Duration=5
 })
