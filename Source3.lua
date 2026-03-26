@@ -5,7 +5,7 @@ local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 --// UI
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
 
 local Window = Rayfield:CreateWindow({
    Name = "Anime Card Collection | Exact Port FIXED",
@@ -13,6 +13,8 @@ local Window = Rayfield:CreateWindow({
    LoadingSubtitle = "Full Script",
    ConfigurationSaving = {Enabled = false}
 })
+
+task.wait(0.5)
 
 local AutoFarm = Window:CreateTab("Autofarm", 4483362458)
 local TowerTab = Window:CreateTab("Tower", 4483362458)
