@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Anime Card Collection | Exact Port",
+   Name = "Anime Card Collection | Exact Port FIXED",
    LoadingTitle = "Loading...",
    LoadingSubtitle = "Full Script",
    ConfigurationSaving = {Enabled = false}
@@ -32,11 +32,11 @@ local CardOpening = require(ReplicatedStorage.Client.UI.CardHandler.CardOpening)
 local UpgradeModule = require(ReplicatedStorage.Modules.Config.Core.Upgrades)
 
 --// HELPERS
-function DataModule()
+local function DataModule()
     return debug.getupvalues(GradeHandler.Init)[1]
 end
 
-function GetPlot()
+local function GetPlot()
     return tostring(LocalPlayer:GetAttribute("Plot"))
 end
 
@@ -51,7 +51,6 @@ getgenv().AutoTrait = false
 getgenv().AutoGrade = false
 getgenv().AutoUpgrade = false
 getgenv().PacksTp = false
-getgenv().RemoveOpeningAnimation = false
 
 getgenv().Selected_Pack = {}
 getgenv().Selected_Rarities = {"All"}
@@ -62,7 +61,6 @@ getgenv().Selected_Grade = {}
 getgenv().Selected_Upgrades = {}
 
 --// DATA
-
 local Packs = {}
 for _,v in pairs(ReplicatedStorage.Assets.Packs:GetChildren()) do
     table.insert(Packs, v.Name)
@@ -100,41 +98,133 @@ for i,_ in pairs(UpgradeModule) do
     table.insert(Upgrades, i)
 end
 
---// UI
+--// UI FIXED
 
-AutoFarm:CreateToggle({Name="Auto Collect",Callback=function(v) getgenv().AutoCollect=v end})
-AutoFarm:CreateToggle({Name="Auto Tokens",Callback=function(v) getgenv().AutoCollect_Tokens=v end})
-AutoFarm:CreateToggle({Name="Auto Potions",Callback=function(v) getgenv().AutoCollect_Potions=v end})
-AutoFarm:CreateToggle({Name="Auto Buy Packs",Callback=function(v) getgenv().AutoBuy=v end})
-AutoFarm:CreateToggle({Name="Auto Open Packs",Callback=function(v) getgenv().AutoOpen=v end})
-AutoFarm:CreateToggle({Name="Allow TP",Callback=function(v) getgenv().PacksTp=v end})
+AutoFarm:CreateToggle({
+    Name="Auto Collect",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoCollect=v end
+})
 
-AutoFarm:CreateDropdown({Name="Packs",Options=Packs,MultiSelection=true,Callback=function(v) getgenv().Selected_Pack=v end})
-AutoFarm:CreateDropdown({Name="Rarity",Options=Rarities,MultiSelection=true,Callback=function(v) getgenv().Selected_Rarities=v end})
+AutoFarm:CreateToggle({
+    Name="Auto Tokens",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoCollect_Tokens=v end
+})
 
-TowerTab:CreateToggle({Name="Auto Battle",Callback=function(v)
-    getgenv().AutoBattle=v
-    if v then
-        TowerHandler.Attack=function() TowerRemote:FireServer("AttackDone") end
-    else
-        TowerHandler.Attack=getgenv().FastTower
+AutoFarm:CreateToggle({
+    Name="Auto Potions",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoCollect_Potions=v end
+})
+
+AutoFarm:CreateToggle({
+    Name="Auto Buy Packs",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoBuy=v end
+})
+
+AutoFarm:CreateToggle({
+    Name="Auto Open Packs",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoOpen=v end
+})
+
+AutoFarm:CreateToggle({
+    Name="Allow TP",
+    CurrentValue=false,
+    Callback=function(v) getgenv().PacksTp=v end
+})
+
+AutoFarm:CreateDropdown({
+    Name="Packs",
+    Options=Packs,
+    CurrentOption={},
+    MultiSelection=true,
+    Callback=function(v) getgenv().Selected_Pack=v end
+})
+
+AutoFarm:CreateDropdown({
+    Name="Rarity",
+    Options=Rarities,
+    CurrentOption={"All"},
+    MultiSelection=true,
+    Callback=function(v) getgenv().Selected_Rarities=v end
+})
+
+TowerTab:CreateToggle({
+    Name="Auto Battle",
+    CurrentValue=false,
+    Callback=function(v)
+        getgenv().AutoBattle=v
+        if v then
+            TowerHandler.Attack=function()
+                TowerRemote:FireServer("AttackDone")
+            end
+        end
     end
-end})
+})
 
-TowerTab:CreateToggle({Name="Auto Trait",Callback=function(v) getgenv().AutoTrait=v end})
-TowerTab:CreateDropdown({Name="Cards",Options=Cards(),MultiSelection=true,Callback=function(v) getgenv().TraitCard=v end})
-TowerTab:CreateDropdown({Name="Traits",Options=Traits,MultiSelection=true,Callback=function(v) getgenv().Selected_Traits=v end})
+TowerTab:CreateToggle({
+    Name="Auto Trait",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoTrait=v end
+})
 
-GradingTab:CreateToggle({Name="Auto Grade",Callback=function(v) getgenv().AutoGrade=v end})
-GradingTab:CreateDropdown({Name="Cards",Options=Cards(),MultiSelection=true,Callback=function(v) getgenv().Selected_Card=v end})
-GradingTab:CreateDropdown({Name="Grades",Options=Gradings,MultiSelection=true,Callback=function(v) getgenv().Selected_Grade=v end})
+TowerTab:CreateDropdown({
+    Name="Cards",
+    Options=Cards(),
+    CurrentOption={},
+    MultiSelection=true,
+    Callback=function(v) getgenv().TraitCard=v end
+})
 
-UpgradeTab:CreateToggle({Name="Auto Upgrade",Callback=function(v) getgenv().AutoUpgrade=v end})
-UpgradeTab:CreateDropdown({Name="Upgrades",Options=Upgrades,MultiSelection=true,Callback=function(v) getgenv().Selected_Upgrades=v end})
+TowerTab:CreateDropdown({
+    Name="Traits",
+    Options=Traits,
+    CurrentOption={},
+    MultiSelection=true,
+    Callback=function(v) getgenv().Selected_Traits=v end
+})
 
---// LOGIC (EXACT PORT STYLE)
+GradingTab:CreateToggle({
+    Name="Auto Grade",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoGrade=v end
+})
 
--- Collect
+GradingTab:CreateDropdown({
+    Name="Cards",
+    Options=Cards(),
+    CurrentOption={},
+    MultiSelection=true,
+    Callback=function(v) getgenv().Selected_Card=v end
+})
+
+GradingTab:CreateDropdown({
+    Name="Grades",
+    Options=Gradings,
+    CurrentOption={},
+    MultiSelection=true,
+    Callback=function(v) getgenv().Selected_Grade=v end
+})
+
+UpgradeTab:CreateToggle({
+    Name="Auto Upgrade",
+    CurrentValue=false,
+    Callback=function(v) getgenv().AutoUpgrade=v end
+})
+
+UpgradeTab:CreateDropdown({
+    Name="Upgrades",
+    Options=Upgrades,
+    CurrentOption={},
+    MultiSelection=true,
+    Callback=function(v) getgenv().Selected_Upgrades=v end
+})
+
+--// LOOPS (UNCHANGED LOGIC)
+
 task.spawn(function()
     while task.wait() do
         if getgenv().AutoCollect then
@@ -149,7 +239,6 @@ task.spawn(function()
     end
 end)
 
--- Page Flip
 task.spawn(function()
     local Page,Flip=1,false
     while task.wait() do
@@ -161,7 +250,6 @@ task.spawn(function()
     end
 end)
 
--- Tokens
 task.spawn(function()
     while task.wait() do
         if getgenv().AutoCollect_Tokens then
@@ -172,7 +260,6 @@ task.spawn(function()
     end
 end)
 
--- Potions
 task.spawn(function()
     while task.wait() do
         if getgenv().AutoCollect_Potions then
@@ -183,7 +270,6 @@ task.spawn(function()
     end
 end)
 
--- Buy Packs (SMART)
 task.spawn(function()
     while task.wait() do
         if getgenv().AutoBuy then
@@ -196,7 +282,6 @@ task.spawn(function()
     end
 end)
 
--- Open Packs (TP INCLUDED)
 task.spawn(function()
     while task.wait() do
         if getgenv().AutoOpen then
@@ -221,7 +306,6 @@ task.spawn(function()
     end
 end)
 
--- Battle Loop
 task.spawn(function()
     while task.wait(.5) do
         if getgenv().AutoBattle then
@@ -234,7 +318,6 @@ task.spawn(function()
     end
 end)
 
--- Trait Roll
 task.spawn(function()
     while task.wait(.1) do
         if getgenv().AutoTrait then
@@ -248,7 +331,6 @@ task.spawn(function()
     end
 end)
 
--- Grade
 task.spawn(function()
     while task.wait() do
         if getgenv().AutoGrade then
@@ -261,7 +343,6 @@ task.spawn(function()
     end
 end)
 
--- Upgrade
 task.spawn(function()
     while task.wait() do
         if getgenv().AutoUpgrade then
@@ -274,6 +355,6 @@ end)
 
 Rayfield:Notify({
    Title="Loaded",
-   Content="Exact Port Running (Xeno Safe)",
+   Content="FULL SCRIPT FIXED (UI WORKING)",
    Duration=5
 })
