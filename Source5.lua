@@ -1,179 +1,208 @@
 --// SERVICES
-local Players = game:GetService('Players')
-local TweenService = game:GetService('TweenService')
-local UserInputService = game:GetService('UserInputService')
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
-local playerGui = player:WaitForChild('PlayerGui')
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "Source2_Rebuilt"
 
---// GUI
-local gui = Instance.new('ScreenGui', playerGui)
-gui.Name = 'AnimeHub'
-gui.ResetOnSpawn = false
+--// GLOBAL STATES
+getgenv().AutoBattle = false
+getgenv().AutoTrait = false
+getgenv().AutoCollect = false
+getgenv().AutoCollect_Tokens = false
+getgenv().AutoCollect_Potions = false
+getgenv().AutoBuy = false
+getgenv().AutoOpen = false
+getgenv().AutoGrade = false
+getgenv().AutoUpgrade = false
 
 --// MAIN FRAME
-local frame = Instance.new('Frame', gui)
-frame.Size = UDim2.new(0, 320, 0, 400)
-frame.Position = UDim2.new(0.5, -160, 0.5, -200)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-frame.BorderSizePixel = 0
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 500, 0, 350)
+main.Position = UDim2.new(0.5, -250, 0.5, -175)
+main.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Instance.new("UICorner", main)
 
-Instance.new("UICorner", frame)
+--// TABS
+local tabs = {"AutoFarm","Tower","Grading","Upgrades"}
+local pages = {}
 
--- TITLE
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,40)
-title.Text = "Anime Card Collection"
-title.BackgroundTransparency = 1
-title.TextColor3 = Color3.new(1,1,1)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 18
+local tabBar = Instance.new("Frame", main)
+tabBar.Size = UDim2.new(1,0,0,40)
+tabBar.BackgroundTransparency = 1
 
---// BUTTON CREATOR
-local function createToggle(text, posY, varName)
-    local btn = Instance.new("TextButton", frame)
-    btn.Size = UDim2.new(1,-20,0,35)
-    btn.Position = UDim2.new(0,10,0,posY)
-    btn.Text = text.." : OFF"
+local content = Instance.new("Frame", main)
+content.Position = UDim2.new(0,0,0,40)
+content.Size = UDim2.new(1,0,1,-40)
+content.BackgroundTransparency = 1
+
+for i,name in ipairs(tabs) do
+    local btn = Instance.new("TextButton", tabBar)
+    btn.Size = UDim2.new(0.25,0,1,0)
+    btn.Position = UDim2.new((i-1)*0.25,0,0,0)
+    btn.Text = name
     btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 14
-    Instance.new("UICorner", btn)
 
-    getgenv()[varName] = false
+    local page = Instance.new("Frame", content)
+    page.Size = UDim2.new(1,0,1,0)
+    page.Visible = i == 1
+    page.BackgroundTransparency = 1
+    pages[name] = page
 
     btn.MouseButton1Click:Connect(function()
-        getgenv()[varName] = not getgenv()[varName]
-        btn.Text = text.." : "..(getgenv()[varName] and "ON" or "OFF")
+        for _,p in pairs(pages) do p.Visible = false end
+        page.Visible = true
     end)
 end
 
---// TOGGLES
-createToggle("Auto Collect", 50, "AutoCollect")
-createToggle("Auto Tokens", 90, "AutoTokens")
-createToggle("Auto Buy Packs", 130, "AutoBuy")
-createToggle("Auto Open Packs", 170, "AutoOpen")
-createToggle("Auto Battle", 210, "AutoBattle")
-createToggle("Auto Trait", 250, "AutoTrait")
-createToggle("Auto Grade", 290, "AutoGrade")
-createToggle("Auto Upgrade", 330, "AutoUpgrade")
+--// TOGGLE CREATOR
+local function CreateToggle(parent, text, var, y)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0,200,0,30)
+    btn.Position = UDim2.new(0,10,0,y)
+    btn.Text = text.." : OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 
---// MODULES
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CardRemote = ReplicatedStorage.Remotes.Card
-local TowerRemote = ReplicatedStorage.Remotes.Tower
-local GradeRemote = ReplicatedStorage.Remotes.Grade
-
-local CardConfig = require(ReplicatedStorage.Modules.Config.Core.CardConfig)
-local TowerConfig = require(ReplicatedStorage.Modules.Config.Core.TowerConfig)
-local GradeHandler = require(ReplicatedStorage.Client.UI.GradeHandler)
-
-local function DataModule()
-    return debug.getupvalues(GradeHandler.Init)[1]
+    btn.MouseButton1Click:Connect(function()
+        getgenv()[var] = not getgenv()[var]
+        btn.Text = text.." : "..(getgenv()[var] and "ON" or "OFF")
+    end)
 end
+
+--// AUTO FARM TAB
+CreateToggle(pages.AutoFarm,"Auto Collect","AutoCollect",10)
+CreateToggle(pages.AutoFarm,"Auto Tokens","AutoCollect_Tokens",50)
+CreateToggle(pages.AutoFarm,"Auto Potions","AutoCollect_Potions",90)
+CreateToggle(pages.AutoFarm,"Auto Buy Packs","AutoBuy",130)
+CreateToggle(pages.AutoFarm,"Auto Open","AutoOpen",170)
+
+--// TOWER TAB
+CreateToggle(pages.Tower,"Auto Battle","AutoBattle",10)
+CreateToggle(pages.Tower,"Auto Trait","AutoTrait",50)
+
+--// GRADING
+CreateToggle(pages.Grading,"Auto Grade","AutoGrade",10)
+
+--// UPGRADES
+CreateToggle(pages.Upgrades,"Auto Upgrade","AutoUpgrade",10)
+
+--// ===== SOURCE2 LOGIC (UNCHANGED) ===== --
+
+local CardRemote = RS.Remotes.Card
 
 local function GetPlot()
     return tostring(player:GetAttribute("Plot"))
 end
 
---// AUTO COLLECT
-task.spawn(function()
+-- AUTO COLLECT
+spawn(function()
     while task.wait() do
         if getgenv().AutoCollect then
-            for _,v in pairs(workspace.Plots:GetChildren()) do
-                for _,side in pairs({"Left","Right"}) do
-                    for _,card in pairs(v.Map.Display[side]:GetChildren()) do
-                        CardRemote:FireServer("Collect", card)
+            pcall(function()
+                for _,v in pairs(workspace.Plots:GetChildren()) do
+                    for _,side in pairs(v.Map.Display:GetChildren()) do
+                        if side.Name == "Left" or side.Name == "Right" then
+                            for _,card in pairs(side:GetChildren()) do
+                                CardRemote:FireServer("Collect", card)
+                            end
+                        end
                     end
                 end
-            end
+            end)
         end
     end
 end)
 
---// TOKENS
-task.spawn(function()
+-- AUTO TOKENS
+spawn(function()
     while task.wait() do
-        if getgenv().AutoTokens then
-            for _,v in pairs(workspace.Items.Tokens.Server:GetChildren()) do
-                v.CFrame = player.Character.HumanoidRootPart.CFrame
-            end
+        if getgenv().AutoCollect_Tokens then
+            pcall(function()
+                for _,v in pairs(workspace.Items.Tokens.Server:GetChildren()) do
+                    v.CFrame = player.Character.HumanoidRootPart.CFrame
+                end
+            end)
         end
     end
 end)
 
---// BUY PACKS
-task.spawn(function()
+-- AUTO POTIONS
+spawn(function()
+    while task.wait() do
+        if getgenv().AutoCollect_Potions then
+            pcall(function()
+                for _,v in pairs(workspace.Items.Misc.Collectables:GetChildren()) do
+                    v.CFrame = player.Character.HumanoidRootPart.CFrame
+                end
+            end)
+        end
+    end
+end)
+
+-- AUTO BATTLE
+spawn(function()
+    while task.wait() do
+        if getgenv().AutoBattle then
+            pcall(function()
+                RS.Remotes.Tower:FireServer("EquipBest")
+                task.wait(.2)
+                RS.Remotes.Tower:FireServer("StartTower")
+            end)
+        end
+    end
+end)
+
+-- AUTO BUY
+spawn(function()
     while task.wait() do
         if getgenv().AutoBuy then
-            for _,v in pairs(workspace.Client.Packs:GetChildren()) do
-                CardRemote:FireServer("BuyPack", v.Name)
-            end
+            pcall(function()
+                for _,v in pairs(workspace.Client.Packs:GetChildren()) do
+                    CardRemote:FireServer("BuyPack", v.Name)
+                end
+            end)
         end
     end
 end)
 
---// OPEN PACKS
-task.spawn(function()
+-- AUTO OPEN
+spawn(function()
     while task.wait() do
         if getgenv().AutoOpen then
-            for _,v in pairs(workspace.Plots[GetPlot()].Packs:GetChildren()) do
-                for _,p in pairs(v:GetChildren()) do
-                    if p:FindFirstChildOfClass("ProximityPrompt") then
-                        p.ProximityPrompt:InputHoldBegin()
-                        p.ProximityPrompt:InputHoldEnd()
+            pcall(function()
+                for _,v in pairs(workspace.Plots[GetPlot()].Packs:GetChildren()) do
+                    for _,p in pairs(v:GetChildren()) do
+                        if p:FindFirstChildOfClass("ProximityPrompt") then
+                            fireproximityprompt(p.ProximityPrompt)
+                        end
                     end
                 end
-            end
+            end)
         end
     end
 end)
 
---// BATTLE
-task.spawn(function()
-    while task.wait(0.5) do
-        if getgenv().AutoBattle then
-            TowerRemote:FireServer("EquipBest")
-            TowerRemote:FireServer("StartTower")
-            TowerRemote:FireServer("AttackDone")
-        end
-    end
-end)
-
---// TRAITS
-task.spawn(function()
-    while task.wait(0.2) do
-        if getgenv().AutoTrait then
-            for name,_ in pairs(DataModule().ReplicatedData.GetData("Cards")) do
-                TowerRemote:FireServer("Roll", name)
-            end
-        end
-    end
-end)
-
---// GRADING
-task.spawn(function()
+-- AUTO GRADE
+spawn(function()
     while task.wait() do
         if getgenv().AutoGrade then
-            for id,data in pairs(DataModule().ReplicatedData.GetData("Cards")) do
-                if data.Grade < 10 then
-                    GradeRemote:FireServer("Roll", id)
-                end
-            end
+            pcall(function()
+                RS.Remotes.Grade:FireServer("Roll","All")
+            end)
         end
     end
 end)
 
---// UPGRADES
-task.spawn(function()
+-- AUTO UPGRADE
+spawn(function()
     while task.wait() do
         if getgenv().AutoUpgrade then
-            for name,_ in pairs(require(ReplicatedStorage.Modules.Config.Core.Upgrades)) do
-                CardRemote:FireServer("Upgrade", name)
-            end
+            pcall(function()
+                RS.Remotes.Card:FireServer("Upgrade","All")
+            end)
         end
     end
 end)
-
-print("✅ FULL UI + SCRIPT LOADED")
